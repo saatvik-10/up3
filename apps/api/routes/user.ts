@@ -27,6 +27,7 @@ route.get('/website/status', authMiddleware, async (req, res) => {
     where: {
       id: websiteId,
       userId,
+      disabled: false,
     },
     include: {
       ticks: true,
