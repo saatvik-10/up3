@@ -35,7 +35,19 @@ route.get('/website/status', authMiddleware, async (req, res) => {
   res.json(data);
 });
 
-route.get('/websites', authMiddleware, async (req, res) => {});
+route.get('/websites', authMiddleware, async (req, res) => {
+  const userId = req.userId as string;
+
+  const websites = await prismaClient.website.findMany({
+    where: {
+      userId,
+    },
+  });
+
+  res.json({
+    websites,
+  });
+});
 
 route.delete('/website', authMiddleware, async (req, res) => {});
 
