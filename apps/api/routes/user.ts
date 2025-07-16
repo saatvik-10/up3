@@ -41,6 +41,7 @@ route.get('/websites', authMiddleware, async (req, res) => {
   const websites = await prismaClient.website.findMany({
     where: {
       userId,
+      disabled: false,
     },
   });
 
@@ -49,6 +50,23 @@ route.get('/websites', authMiddleware, async (req, res) => {
   });
 });
 
-route.delete('/website', authMiddleware, async (req, res) => {});
+route.delete('/website', authMiddleware, async (req, res) => {
+  const websiteId = req.body.websiteId as string;
+  const userId = req.userId as string;
+
+  await prismaClient.website.update({
+    where: {
+      id: websiteId,
+      userId,
+    },
+    data: {
+      disabled: true,
+    },
+  });
+
+  res.json({
+    message: 'Website deleted successfully',
+  });
+});
 
 export default route;
