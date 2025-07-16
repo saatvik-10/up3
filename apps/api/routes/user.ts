@@ -1,13 +1,28 @@
 import { Router } from 'express';
+import { authMiddleware } from '../middleware';
+import { prismaClient } from 'db/client';
 
 const route = Router();
 
-route.post('/website', async (req, res) => {});
+route.post('/website', authMiddleware, async (req, res) => {
+  const userId = req.userId!;
+  const { url } = req.body;
 
-route.get('/website/status', async (req, res) => {});
+  const data = await prismaClient.website.create({
+    data: {
+      userId,
+      url,
+    },
+  });
+  res.json({
+    id: data.id,
+  });
+});
 
-route.get('/websites', async (req, res) => {});
+route.get('/website/status', authMiddleware, async (req, res) => {});
 
-route.delete('/website', async (req, res) => {});
+route.get('/websites', authMiddleware, async (req, res) => {});
+
+route.delete('/website', authMiddleware, async (req, res) => {});
 
 export default route;
