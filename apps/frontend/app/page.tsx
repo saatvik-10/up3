@@ -8,6 +8,7 @@ import {
   Star,
   Bell,
   Lock,
+  MoveRight,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -46,7 +47,10 @@ export default function Home() {
 
             <Link href='/dashboard'>
               <Button className='mt-4 bg-transparent border-2 border-white text-white hover:bg-white/20 cursor-pointer'>
-                Start Monitoring
+                <span className='flex items-center justify-center gap-2'>
+                  Start Monitoring
+                  <MoveRight className='w-4 h-4 animate-pulse' />
+                </span>
               </Button>
             </Link>
           </div>
