@@ -21,6 +21,7 @@ import { API_BACKEND_URL } from '@/utils/config';
 import axios from 'axios';
 import { UserWebsites } from '@/hooks/userWebsites';
 import { useAuth } from '@clerk/nextjs';
+import Link from 'next/link';
 
 type UptimeStatus = 'good' | 'bad' | 'unknown';
 
@@ -106,9 +107,13 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
             <h3 className='text-lg font-semibold text-white mb-1'>
               {website.url}
             </h3>
-            <div className='flex items-center space-x-2 text-gray-400 text-sm'>
-              <span>{website.url}</span>
-              <ExternalLink className='w-3 h-3' />
+            <div className='flex items-center space-x-2 text-gray-400 text-sm just'>
+              <Link href={website.url} target='_blank'>
+                <div className='flex items-center justify-center gap-2'>
+                  <span>Visit Website</span>
+                  <ExternalLink className='w-3 h-3' />
+                </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -360,9 +365,8 @@ export default function Dashboard() {
             <h3 className='text-2xl font-bold text-gray-300 mb-4'>
               No monitors yet
             </h3>
-            <p className='text-gray-500 mb-8 max-w-md mx-auto'>
-              Start monitoring your Web3 infrastructure by adding your first
-              monitor
+            <p className='text-gray-500 mb-8 mx-auto'>
+              Start monitoring your infrastructure by adding your first monitor
             </p>
             <Button
               onClick={() => setIsModalOpen(true)}
