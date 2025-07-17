@@ -47,5 +47,5 @@ export function UserWebsites() {
     return () => clearInterval(interval);
   }, []);
 
-  return websites;
+  return {  websites, fetchWebsites };
 }
