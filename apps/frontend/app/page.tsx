@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   Shield,
   Zap,
@@ -8,6 +9,7 @@ import {
   Bell,
   Lock,
 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -27,7 +29,7 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className='text-5xl md:text-7xl font-bold mb-8 leading-tight'>
+            <h1 className='text-5xl md:text-7xl font-bold leading-tight'>
               <span className='bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent'>
                 Monitor Your
               </span>
@@ -41,6 +43,12 @@ export default function Home() {
               Real-time uptime monitoring for your infrastructure. Get instant
               alerts when something goes down.
             </p>
+
+            <Link href='/dashboard'>
+              <Button className='mt-4 bg-transparent border-2 border-white text-white hover:bg-white/20 cursor-pointer'>
+                Start Monitoring
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
