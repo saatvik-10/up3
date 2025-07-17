@@ -27,7 +27,7 @@ export function UserWebsites() {
 
     const res = await axios.get(`${API_BACKEND_URL}/api/v1/websites`, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: token,
       },
     });
 
@@ -47,5 +47,5 @@ export function UserWebsites() {
     return () => clearInterval(interval);
   }, []);
 
-  return {  websites, fetchWebsites };
+  return { websites, fetchWebsites };
 }
