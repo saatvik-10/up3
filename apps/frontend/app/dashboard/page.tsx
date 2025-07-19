@@ -12,16 +12,15 @@ import {
   ChevronUp,
   Plus,
   Calendar,
-  Zap,
-  Eye,
   ExternalLink,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import { CreateWebsiteModal } from '@/components/CreateWebsiteModel';
 import { API_BACKEND_URL } from '@/utils/config';
 import axios from 'axios';
 import { UserWebsites } from '@/hooks/userWebsites';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
 type UptimeStatus = 'good' | 'bad' | 'unknown';
@@ -34,7 +33,7 @@ function StatusCircle({ status }: { status: UptimeStatus }) {
           ? 'bg-green-500'
           : status === 'bad'
             ? ' bg-red-500'
-            : 'bggray-600'
+            : 'bg-gray-600'
       }`}
     />
   );
@@ -70,6 +69,24 @@ interface ProcessedWebsite {
 
 function WebsiteCard({ website }: { website: ProcessedWebsite }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { websites, fetchWebsites } = UserWebsites();
+  const { getToken } = useAuth();
+
+  const handleDelete = async (websiteId: number) => {
+    const token = await getToken();
+    axios
+      .delete(`${API_BACKEND_URL}/api/v1/website`, {
+        data: {
+          websiteId,
+        },
+        headers: {
+          Authorization: token,
+        },
+      })
+      .then(() => {
+        fetchWebsites();
+      });
+  };
 
   return (
     <div className='rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 backdrop-blur-sm overflow-hidden'>
@@ -85,7 +102,7 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
               <ChevronUp className='w-5 h-5 text-gray-400' />
             )}
             <div
-              className={`p-3 rounded-xl ${
+              className={`p-3 rounded-xl hidden md:block lg:block ${
                 website.status === 'good'
                   ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20'
                   : website.status === 'bad'
@@ -105,13 +122,21 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
             </div>
           </div>
           <div>
-            <h3 className='text-lg font-semibold text-white mb-1'>
-              {website.url}
-            </h3>
+            <span className='md:text-lg lg:text-lg flex items-start gap-5'>
+              <h3 className='font-semibold text-white mb-1 text-sm md:text-lg lg:text-lg'>
+                {website.url}
+              </h3>
+              {/* <Trash2
+                className='h-6 w-6 cursor-pointer text-red-400'
+                onClick={() => handleDelete(website.id)}
+              /> */}
+            </span>
             <div className='flex items-center space-x-2 text-gray-400 text-sm just'>
               <Link href={website.url} target='_blank'>
                 <div className='flex items-center justify-center gap-2'>
-                  <span>Visit Website</span>
+                  <span className='text-xs md:text-base lg:text-base'>
+                    Visit Website
+                  </span>
                   <ExternalLink className='w-3 h-3' />
                 </div>
               </Link>
@@ -120,7 +145,7 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
         </div>
 
         <div className='flex items-center space-x-6'>
-          <div className='text-right'>
+          <div className='text-right hidden md:block lg:block'>
             <div className='text-white font-semibold'>
               {website.uptimePercentage.toFixed(1)}%
             </div>
@@ -176,6 +201,7 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { websites, fetchWebsites } = UserWebsites();
   const { getToken } = useAuth();
+  const { userId } = useAuth();
 
   const processedWebsites = useMemo(() => {
     return websites.map((website) => {
@@ -252,12 +278,27 @@ export default function Dashboard() {
         totalCount
       : 0;
 
+  if (!userId) {
+    return (
+      <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-x-hidden'>
+        <h1 className='text-2xl font-bold mb-4 text-center'>
+          Please sign in to access your dashboard
+        </h1>
+        <SignInButton>
+          <Button
+            variant='ghost'
+            className='sm:inline-flex relative group text-gray-300 hover:text-white font-medium transition-all duration-300 border border-gray-700/50 hover:border-violet-500/50 px-6 py-2.5 rounded-xl overflow-hidden'
+          >
+            <div className='absolute inset-0 bg-gradient-to-r from-violet-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
+            <span className='relative'>Sign In</span>
+          </Button>
+        </SignInButton>
+      </div>
+    );
+  }
+
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white'>
-      <div className='absolute inset-0 bg-gradient-to-r from-violet-600/5 via-blue-600/10 to-cyan-600/5'></div>
-      <div className='absolute top-0 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl'></div>
-      <div className='absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl'></div>
-
       <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
           <div className='flex items-center justify-between'>
@@ -278,7 +319,7 @@ export default function Dashboard() {
             </Button>
           </div>
 
-          <span className='text-red-500 flex items-center gap-2 my-4'>
+          <span className='text-red-500 flex md:items-center gap-2 my-4 text-xs md:text-base lg:text-base'>
             <AlertCircle className='w-4 h-4' />
             <p>
               If your website appears as down while it is actually up, please
@@ -286,7 +327,7 @@ export default function Dashboard() {
             </p>
           </span>
 
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-6 mb-8'>
             <div className='p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-700/50 backdrop-blur-sm'>
               <div className='flex items-center justify-between mb-4'>
                 <div className='p-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-green-500/20'>
@@ -336,7 +377,7 @@ export default function Dashboard() {
         <div className='space-y-4'>
           <div className='flex items-center justify-between mb-6'>
             <h2 className='text-2xl font-bold text-gray-200'>Your Monitors</h2>
-            <div className='flex items-center space-x-2 text-sm text-gray-400'>
+            <div className='flex items-center space-x-2 text-xs text-gray-400'>
               <Calendar className='w-4 h-4' />
               <span>Last updated: just now</span>
             </div>
