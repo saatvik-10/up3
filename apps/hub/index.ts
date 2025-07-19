@@ -19,18 +19,16 @@ const COST_PER_VALIDATION = 100; // in lamports
 
 // Add HTTP health check endpoint and WebSocket server for Render
 Bun.serve({
-  port: process.env.PORT || 8081,
+  port: 8081,
   fetch(req, server) {
-    const url = new URL(req.url);
-    if (
-      url.pathname === '/' ||
-      url.pathname === '/dashboard' ||
-      url.pathname === '/healthz'
-    ) {
-      return new Response('Hub is healthy', { status: 200 });
-    }
+    // Try WebSocket upgrade first
     if (server.upgrade(req)) {
       return;
+    }
+    // HTTP health check endpoint
+    const url = new URL(req.url);
+    if (url.pathname === '/healthz' || url.pathname === '/dashboard') {
+      return new Response('Hub is healthy', { status: 200 });
     }
     return new Response('Not found', { status: 404 });
   },

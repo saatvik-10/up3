@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { randomUUIDv7 } from 'bun';
 import type {
   OutgoingMsg,
@@ -15,7 +18,7 @@ let validatorId: string | null = null;
 
 // Add a robust HTTP server for Render health checks
 const server = Bun.serve({
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 3100,
   fetch(request) {
     const url = new URL(request.url);
     if (
@@ -58,6 +61,7 @@ async function main() {
     const callbackId = randomUUIDv7();
     CALLBACKS[callbackId] = (data: SignUpOutgoingMsg) => {
       validatorId = data.validatorId;
+      console.log('Validator registered with ID:', validatorId);
     };
     const signedMsg = await signMessage(
       `Signed msg for ${callbackId}, ${keypair.publicKey}`,
@@ -75,6 +79,14 @@ async function main() {
         },
       })
     );
+  };
+
+  ws.onerror = (error) => {
+    console.error('WebSocket error:', error);
+  };
+
+  ws.onclose = (event) => {
+    console.log('WebSocket connection closed:', event.code, event.reason);
   };
 }
 
