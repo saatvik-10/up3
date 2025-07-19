@@ -13,15 +13,19 @@ const CALLBACKS: { [callbackId: string]: (data: SignUpOutgoingMsg) => void } =
 
 let validatorId: string | null = null;
 
-// Add a simple HTTP server for Render port detection
+// Add a robust HTTP server for Render health checks
 const server = Bun.serve({
   port: process.env.PORT || 3000,
   fetch(request) {
-    return new Response('Validator is running', { status: 200 });
+    const url = new URL(request.url);
+    if (url.pathname === '/' ||url.pathname === '/dashboard' || url.pathname === '/healthz') {
+      return new Response('Validator is healthy', { status: 200 });
+    }
+    return new Response('Not found', { status: 404 });
   },
 });
 
-console.log(`Validator HTTP server running on port ${server.port}`);
+console.log(`Validator HTTP/health server running on port ${server.port}`);
 
 async function main() {
   const keypair = Keypair.fromSecretKey(
@@ -30,7 +34,7 @@ async function main() {
 
   console.log('Validator started');
 
-  const hubUrl = process.env.HUB_URL || 'ws://localhost:8081';
+  const hubUrl = 'ws://localhost:8081';
   console.log('Connecting to hub:', hubUrl);
 
   const ws = new WebSocket(hubUrl);
