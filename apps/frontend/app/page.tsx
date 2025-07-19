@@ -77,7 +77,7 @@ export default function Home() {
                 icon: <Zap className='w-8 h-8' />,
                 title: 'Lightning Fast',
                 description:
-                  'Monitor your endpoints every 30 seconds with sub-second response times',
+                  'Monitor your endpoints every 60 seconds with sub-second response times',
                 gradient: 'from-yellow-400 to-orange-500',
               },
               {

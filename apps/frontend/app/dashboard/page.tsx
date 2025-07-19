@@ -161,25 +161,9 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
 
           <div className='mt-6 flex items-center justify-between'>
             <div className='flex items-center space-x-4'>
-              <Button
-                variant='outline'
-                size='sm'
-                className='bg-gray-800/50 border-gray-600/50 text-gray-300 hover:text-white hover:border-cyan-500/50'
-              >
-                <Eye className='w-4 h-4 mr-2' />
-                View Details
-              </Button>
-              <Button
-                variant='outline'
-                size='sm'
-                className='bg-gray-800/50 border-gray-600/50 text-gray-300 hover:text-white hover:border-violet-500/50'
-              >
-                <Zap className='w-4 h-4 mr-2' />
-                Test Now
-              </Button>
             </div>
             <div className='text-xs text-gray-500'>
-              Monitoring every 30 seconds from 5 global locations
+              Monitoring every 60 seconds from 5 global locations
             </div>
           </div>
         </div>
@@ -335,7 +319,7 @@ export default function Dashboard() {
                   <Clock className='w-6 h-6 text-cyan-400' />
                 </div>
               </div>
-              <div className='text-2xl font-bold text-white mb-1'>30s</div>
+              <div className='text-2xl font-bold text-white mb-1'>60s</div>
               <div className='text-gray-400 text-sm'>Check Interval</div>
             </div>
           </div>
