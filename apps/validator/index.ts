@@ -18,7 +18,11 @@ const server = Bun.serve({
   port: process.env.PORT || 3000,
   fetch(request) {
     const url = new URL(request.url);
-    if (url.pathname === '/' ||url.pathname === '/dashboard' || url.pathname === '/healthz') {
+    if (
+      url.pathname === '/' ||
+      url.pathname === '/dashboard' ||
+      url.pathname === '/healthz'
+    ) {
       return new Response('Validator is healthy', { status: 200 });
     }
     return new Response('Not found', { status: 404 });
@@ -33,11 +37,9 @@ async function main() {
   );
 
   console.log('Validator started');
+  console.log('Connecting to hub');
 
-  const hubUrl = 'ws://localhost:8081';
-  console.log('Connecting to hub:', hubUrl);
-
-  const ws = new WebSocket(hubUrl);
+  const ws = new WebSocket(process.env.HUB_URL!);
 
   ws.onmessage = async (event) => {
     console.log('Received message:', event.data);

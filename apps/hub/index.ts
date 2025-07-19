@@ -22,10 +22,13 @@ Bun.serve({
   port: process.env.PORT || 8081,
   fetch(req, server) {
     const url = new URL(req.url);
-    if (url.pathname === '/' ||url.pathname === '/dashboard' || url.pathname === '/healthz') {
+    if (
+      url.pathname === '/' ||
+      url.pathname === '/dashboard' ||
+      url.pathname === '/healthz'
+    ) {
       return new Response('Hub is healthy', { status: 200 });
     }
-    // WebSocket upgrade
     if (server.upgrade(req)) {
       return;
     }
