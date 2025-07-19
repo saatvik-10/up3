@@ -67,132 +67,146 @@ interface ProcessedWebsite {
   uptimeTicks: UptimeStatus[];
 }
 
-function WebsiteCard({ website }: { website: ProcessedWebsite }) {
+function WebsiteCard({
+  website,
+  onDelete,
+}: {
+  website: ProcessedWebsite;
+  onDelete: (websiteId: number) => void;
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { websites, fetchWebsites } = UserWebsites();
   const { getToken } = useAuth();
 
   const handleDelete = async (websiteId: number) => {
     const token = await getToken();
-    axios
-      .delete(`${API_BACKEND_URL}/api/v1/website`, {
+    try {
+      await axios.delete(`${API_BACKEND_URL}/api/v1/website`, {
         data: {
           websiteId,
         },
         headers: {
           Authorization: token,
         },
-      })
-      .then(() => {
-        fetchWebsites();
       });
+      onDelete(websiteId);
+    } catch (error) {
+      console.error('Failed to delete website:', error);
+    }
   };
 
   return (
-    <div className='rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 backdrop-blur-sm overflow-hidden'>
-      <div
-        className='p-6 cursor-pointer hover:bg-gray-800/30 transition-all duration-200 flex items-center justify-between'
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        <div className='flex items-center space-x-4'>
-          <div className='flex items-center space-x-2'>
-            {isExpanded ? (
-              <ChevronDown className='w-5 h-5 text-gray-400' />
-            ) : (
-              <ChevronUp className='w-5 h-5 text-gray-400' />
-            )}
-            <div
-              className={`p-3 rounded-xl hidden md:block lg:block ${
-                website.status === 'good'
-                  ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20'
-                  : website.status === 'bad'
-                    ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20'
-                    : 'bg-gradient-to-r from-gray-500/20 to-gray-600/20'
-              }`}
-            >
-              <Globe
-                className={`w-5 h-5 ${
+    <div className='flex items-center justify-between gap-1'>
+      <div className='rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 border border-gray-700/50 backdrop-blur-sm overflow-hidden w-full'>
+        <div
+          className='p-6 cursor-pointer hover:bg-gray-800/30 transition-all duration-200 flex items-center justify-between w-full'
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <div className='flex items-center space-x-4'>
+            <div className='flex items-center space-x-2'>
+              {isExpanded ? (
+                <ChevronDown className='w-5 h-5 text-gray-400' />
+              ) : (
+                <ChevronUp className='w-5 h-5 text-gray-400' />
+              )}
+              <div
+                className={`p-3 rounded-xl hidden md:block lg:block ${
                   website.status === 'good'
-                    ? 'text-emerald-400'
+                    ? 'bg-gradient-to-r from-emerald-500/20 to-green-500/20'
                     : website.status === 'bad'
-                      ? 'text-red-400'
-                      : 'text-gray-400'
+                      ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20'
+                      : 'bg-gradient-to-r from-gray-500/20 to-gray-600/20'
                 }`}
-              />
+              >
+                <Globe
+                  className={`w-5 h-5 ${
+                    website.status === 'good'
+                      ? 'text-emerald-400'
+                      : website.status === 'bad'
+                        ? 'text-red-400'
+                        : 'text-gray-400'
+                  }`}
+                />
+              </div>
             </div>
-          </div>
-          <div>
-            <span className='md:text-lg lg:text-lg flex items-start gap-5'>
-              <h3 className='font-semibold text-white mb-1 text-sm md:text-lg lg:text-lg'>
-                {website.url}
-              </h3>
-              {/* <Trash2
+            <div>
+              <span className='md:text-lg lg:text-lg flex items-start gap-5'>
+                <h3 className='font-semibold text-white mb-1 text-sm md:text-lg lg:text-lg'>
+                  {website.url.length > 22
+                    ? `${website.url.slice(0, 22)}...`
+                    : website.url}
+                </h3>
+                {/* <Trash2
                 className='h-6 w-6 cursor-pointer text-red-400'
                 onClick={() => handleDelete(website.id)}
               /> */}
-            </span>
-            <div className='flex items-center space-x-2 text-gray-400 text-sm just'>
-              <Link href={website.url} target='_blank'>
-                <div className='flex items-center justify-center gap-2'>
-                  <span className='text-xs md:text-base lg:text-base'>
-                    Visit Website
-                  </span>
-                  <ExternalLink className='w-3 h-3' />
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className='flex items-center space-x-6'>
-          <div className='text-right hidden md:block lg:block'>
-            <div className='text-white font-semibold'>
-              {website.uptimePercentage.toFixed(1)}%
-            </div>
-            <div className='text-gray-400 text-xs'>Uptime</div>
-          </div>
-          <div className='text-right'>
-            <StatusCircle status={website.status} />
-            <div className='text-gray-400 text-xs mt-1'>
-              {website.lastChecked}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className='border-t border-gray-700/50 p-6 bg-gray-900/30'>
-          <div className='mt-3'>
-            <div className='flex items-center justify-between mb-4'>
-              <h4 className='text-sm font-medium text-gray-300'>
-                Last 30 Minutes
-              </h4>
-              <div className='flex items-center space-x-2 text-xs text-gray-400'>
-                <div className='flex items-center space-x-1'>
-                  <div className='w-3 h-3 rounded-full bg-emerald-500'></div>
-                  <span>Good</span>
-                </div>
-                <div className='flex items-center space-x-1'>
-                  <div className='w-3 h-3 rounded-full bg-red-500'></div>
-                  <span>Bad</span>
-                </div>
-                <div className='flex items-center space-x-1'>
-                  <div className='w-3 h-3 rounded-full bg-gray-500'></div>
-                  <span>Unknown</span>
-                </div>
+              </span>
+              <div className='flex items-center space-x-2 text-gray-400 text-sm just'>
+                <Link href={website.url} target='_blank'>
+                  <div className='flex items-center justify-center gap-2'>
+                    <span className='text-xs md:text-base lg:text-base'>
+                      Visit Website
+                    </span>
+                    <ExternalLink className='w-3 h-3' />
+                  </div>
+                </Link>
               </div>
             </div>
-            <UptimeTicks ticks={website.uptimeTicks} />
           </div>
 
-          <div className='mt-6 flex items-center justify-between'>
-            <div className='flex items-center space-x-4'></div>
-            <div className='text-xs text-gray-500'>
-              Monitoring every 60 seconds from 5 global locations
+          <div className='flex items-center space-x-6'>
+            <div className='text-right hidden md:block lg:block'>
+              <div className='text-white font-semibold'>
+                {website.uptimePercentage.toFixed(1)}%
+              </div>
+              <div className='text-gray-400 text-xs'>Uptime</div>
+            </div>
+            <div className='text-right'>
+              <StatusCircle status={website.status} />
+              <div className='text-gray-400 text-xs mt-1'>
+                {website.lastChecked}
+              </div>
             </div>
           </div>
         </div>
-      )}
+
+        {isExpanded && (
+          <div className='border-t border-gray-700/50 p-6 bg-gray-900/30 w-full'>
+            <div className='mt-3'>
+              <div className='flex items-center justify-between mb-4'>
+                <h4 className='text-sm font-medium text-gray-300'>
+                  Last 30 Minutes
+                </h4>
+                <div className='flex items-center space-x-2 text-xs text-gray-400'>
+                  <div className='flex items-center space-x-1'>
+                    <div className='w-3 h-3 rounded-full bg-emerald-500'></div>
+                    <span>Good</span>
+                  </div>
+                  <div className='flex items-center space-x-1'>
+                    <div className='w-3 h-3 rounded-full bg-red-500'></div>
+                    <span>Bad</span>
+                  </div>
+                  <div className='flex items-center space-x-1'>
+                    <div className='w-3 h-3 rounded-full bg-gray-500'></div>
+                    <span>Unknown</span>
+                  </div>
+                </div>
+              </div>
+              <UptimeTicks ticks={website.uptimeTicks} />
+            </div>
+
+            <div className='mt-6 flex items-center justify-between'>
+              <div className='flex items-center space-x-4'></div>
+              <div className='text-xs text-gray-500'>
+                Monitoring every 60 seconds from 5 global locations
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <Trash2
+        className='h-8 w-8 text-red-700 cursor-pointer hover:text-red-400'
+        onClick={() => handleDelete(website.id)}
+      />
     </div>
   );
 }
@@ -202,6 +216,10 @@ export default function Dashboard() {
   const { websites, fetchWebsites } = UserWebsites();
   const { getToken } = useAuth();
   const { userId } = useAuth();
+
+  const handleDeleteWebsite = () => {
+    fetchWebsites();
+  };
 
   const processedWebsites = useMemo(() => {
     return websites.map((website) => {
@@ -282,7 +300,7 @@ export default function Dashboard() {
     return (
       <div className='flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-black text-white overflow-x-hidden'>
         <h1 className='text-2xl font-bold mb-4 text-center'>
-          Please sign in to access your dashboard
+          Please sign in to access the dashboard
         </h1>
         <SignInButton>
           <Button
@@ -385,7 +403,11 @@ export default function Dashboard() {
 
           <div className='space-y-4'>
             {processedWebsites.map((website) => (
-              <WebsiteCard key={website.id} website={website} />
+              <WebsiteCard
+                key={website.id}
+                website={website}
+                onDelete={handleDeleteWebsite}
+              />
             ))}
           </div>
         </div>
