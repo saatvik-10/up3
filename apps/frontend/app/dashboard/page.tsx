@@ -15,6 +15,7 @@ import {
   Zap,
   Eye,
   ExternalLink,
+  AlertCircle,
 } from 'lucide-react';
 import { CreateWebsiteModal } from '@/components/CreateWebsiteModel';
 import { API_BACKEND_URL } from '@/utils/config';
@@ -30,10 +31,10 @@ function StatusCircle({ status }: { status: UptimeStatus }) {
     <div
       className={`w-3 h-3 rounded-full ${
         status === 'good'
-          ? 'bg-gradient-to-r from-emerald-500 to-green-500'
+          ? 'bg-green-500'
           : status === 'bad'
-            ? 'bg-gradient-to-r from-red-500 to-pink-500'
-            : 'bg-gradient-to-r from-gray-500 to-gray-600'
+            ? ' bg-red-500'
+            : 'bggray-600'
       }`}
     />
   );
@@ -49,8 +50,8 @@ function UptimeTicks({ ticks }: { ticks: UptimeStatus[] }) {
             tick === 'good'
               ? 'bg-gradient-to-r from-emerald-500 to-green-500'
               : tick === 'bad'
-                ? 'bg-gradient-to-r from-red-500 to-pink-500'
-                : 'bg-gradient-to-r from-gray-500 to-gray-600'
+                ? 'bg-red-500 '
+                : 'bg-gray-600'
           }`}
         />
       ))}
@@ -160,8 +161,7 @@ function WebsiteCard({ website }: { website: ProcessedWebsite }) {
           </div>
 
           <div className='mt-6 flex items-center justify-between'>
-            <div className='flex items-center space-x-4'>
-            </div>
+            <div className='flex items-center space-x-4'></div>
             <div className='text-xs text-gray-500'>
               Monitoring every 60 seconds from 5 global locations
             </div>
@@ -260,7 +260,7 @@ export default function Dashboard() {
 
       <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
         <div className='mb-8'>
-          <div className='flex items-center justify-between mb-6'>
+          <div className='flex items-center justify-between'>
             <div>
               <h1 className='text-4xl font-bold bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2'>
                 Dashboard
@@ -277,6 +277,14 @@ export default function Dashboard() {
               Add Monitor
             </Button>
           </div>
+
+          <span className='text-red-500 flex items-center gap-2 my-4'>
+            <AlertCircle className='w-4 h-4' />
+            <p>
+              If your website appears as down while it is actually up, please
+              ensure your health check endpoint is publicly accessible.
+            </p>
+          </span>
 
           <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mb-8'>
             <div className='p-6 rounded-2xl bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-gray-700/50 backdrop-blur-sm'>
