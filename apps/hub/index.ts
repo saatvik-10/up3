@@ -1,4 +1,6 @@
 import { randomUUIDv7, type ServerWebSocket } from 'bun';
+
+console.log('Hub started');
 import type { IncomingMsg, SignUpIncomingMsg } from 'common/types';
 import { prismaClient } from 'db/client';
 import { PublicKey } from '@solana/web3.js';
@@ -26,17 +28,24 @@ Bun.serve({
   port: 8081,
   websocket: {
     async message(ws: ServerWebSocket, message: string) {
+      console.log('Received message:', message);
       const data: IncomingMsg = JSON.parse(message);
 
       if (data.type === 'signUp') {
         const verified = await verifyMessage(
           `Signed msg for ${data.data.callbackId}, ${data.data.publicKey}`,
-          data.data.signedMsg,
-          data.data.publicKey
+          data.data.publicKey,
+          data.data.signedMsg
         );
 
         if (verified) {
+          console.log('SignUp verified for publicKey:', data.data.publicKey);
           await signUpHandler(ws, data.data);
+        } else {
+          console.log(
+            'SignUp verification failed for publicKey:',
+            data.data.publicKey
+          );
         }
       } else if (data.type === 'validate') {
         CALLBACKS[data.data.callbackId](data);
@@ -63,6 +72,7 @@ async function signUpHandler(
   });
 
   if (validator) {
+    console.log('Validator already exists, id:', validator.id);
     ws.send(
       JSON.stringify({
         type: 'signUp',
@@ -74,9 +84,9 @@ async function signUpHandler(
     );
 
     availableValidators.push({
-      validatorId: validator?.id,
+      validatorId: validator.id,
       socket: ws,
-      publicKey: validator?.publicKey,
+      publicKey: validator.publicKey,
     });
     return;
   }
@@ -89,6 +99,7 @@ async function signUpHandler(
     },
   });
 
+  console.log('New validator created, id:', newValidator.id);
   ws.send(
     JSON.stringify({
       type: 'signUp',
@@ -127,9 +138,14 @@ setInterval(async () => {
     },
   });
 
+  console.log('Websites found:', allWebsites.length);
+
   for (const website of allWebsites) {
     availableValidators.forEach((validator) => {
       const callbackId = randomUUIDv7();
+      console.log(
+        `Sending validate to ${validator.validatorId} ${website.url}`
+      );
       validator.socket.send(
         JSON.stringify({
           type: 'validate',
@@ -144,14 +160,14 @@ setInterval(async () => {
         if (data.type == 'validate') {
           const { validatorId, status, latency, signedMsg } = data.data;
           const verified = await verifyMessage(
-            `Reply to ${callbackId}`,
+            `Replying to ${callbackId}`,
             validator.publicKey,
             signedMsg
           );
           if (!verified) {
+            console.log('Validation reply signature failed for', validatorId);
             return;
           }
-
           await prismaClient.$transaction(async (tx) => {
             await tx.websiteTick.create({
               data: {

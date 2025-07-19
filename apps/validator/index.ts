@@ -17,9 +17,13 @@ async function main() {
   const keypair = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(process.env.SOLANA_PRIVATE_KEY!))
   );
+
+  console.log('Validator started');
+
   const ws = new WebSocket('ws://localhost:8081');
 
   ws.onmessage = async (event) => {
+    console.log('Received message:', event.data);
     const data: OutgoingMsg = JSON.parse(event.data);
 
     if (data.type === 'signUp') {
@@ -31,6 +35,7 @@ async function main() {
   };
 
   ws.onopen = async () => {
+    console.log('WebSocket connection established');
     const callbackId = randomUUIDv7();
     CALLBACKS[callbackId] = (data: SignUpOutgoingMsg) => {
       validatorId = data.validatorId;
@@ -59,22 +64,25 @@ async function validateHandler(
   { url, callbackId, websiteId }: ValidateOutgoingMsg,
   keypair: Keypair
 ) {
+  console.log(`Validating ${url}`);
   const startTime = Date.now();
   const signature = await signMessage(`Replying to ${callbackId}`, keypair);
 
   try {
     const res = await fetch(url);
     const endTime = Date.now();
-    const latencey = endTime - startTime;
+    const latency = endTime - startTime;
     const status = res.status;
 
+    console.log(url);
+    console.log(status);
     ws.send(
       JSON.stringify({
         type: 'validate',
         data: {
           callbackId,
           status: status === 200 ? 'Good' : 'Bad',
-          latencey,
+          latency,
           websiteId,
           signedMsg: signature,
           validatorId,
@@ -88,13 +96,14 @@ async function validateHandler(
         data: {
           callbackId,
           status: 'Bad',
-          latencey: -1,
+          latency: -1,
           websiteId,
           signedMsg: signature,
           validatorId,
         },
       })
     );
+    console.error(err);
   }
 }
 
