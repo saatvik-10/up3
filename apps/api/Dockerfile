@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy everything (monorepo)
 COPY . .
 
-# Install dependencies for API
-RUN cd apps/api && bun install
+# Install dependencies for the whole monorepo
+RUN bun install
+
+# Generate Prisma client (this was missing!)
+RUN cd packages/db && bunx prisma generate
 
 # Expose the port
 EXPOSE 8080
 
-# Start with Bun (can run .ts files directly)
+# Start with Bun
 CMD ["bun", "run", "apps/api/index.ts"]

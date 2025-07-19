@@ -1,14 +1,17 @@
-# Use Bun runtime (like Node.js but faster)
+# Use Bun runtime 
 FROM oven/bun:latest
 
 # Set working directory
 WORKDIR /app
 
-# Copy everything (since it's a monorepo)
+# Copy everything (monorepo)
 COPY . .
 
-# Install dependencies for hub
-RUN cd apps/hub && bun install
+# Install dependencies for whole monorepo
+RUN bun install
+
+# Generate Prisma client (important!)
+RUN cd packages/db && bunx prisma generate
 
 # Expose WebSocket port
 EXPOSE 8081

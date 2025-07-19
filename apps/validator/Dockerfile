@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy everything (monorepo)
 COPY . .
 
-# Install dependencies for validator
-RUN cd apps/validator && bun install
+# Install dependencies for whole monorepo
+RUN bun install
+
+# Generate Prisma client (important!)
+RUN cd packages/db && bunx prisma generate
 
 # Start the validator
 CMD ["bun", "run", "apps/validator/index.ts"]
