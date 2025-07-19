@@ -1,6 +1,9 @@
 # Use Bun runtime 
 FROM oven/bun:latest
 
+# Install OpenSSL (fixes Prisma warning)
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 

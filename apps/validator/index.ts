@@ -13,6 +13,16 @@ const CALLBACKS: { [callbackId: string]: (data: SignUpOutgoingMsg) => void } =
 
 let validatorId: string | null = null;
 
+// Add a simple HTTP server for Render port detection
+const server = Bun.serve({
+  port: process.env.PORT || 3000,
+  fetch(request) {
+    return new Response('Validator is running', { status: 200 });
+  },
+});
+
+console.log(`Validator HTTP server running on port ${server.port}`);
+
 async function main() {
   const keypair = Keypair.fromSecretKey(
     Uint8Array.from(JSON.parse(process.env.SOLANA_PRIVATE_KEY!))
@@ -20,7 +30,10 @@ async function main() {
 
   console.log('Validator started');
 
-  const ws = new WebSocket('ws://localhost:8081');
+  const hubUrl = process.env.HUB_URL || 'ws://localhost:8081';
+  console.log('Connecting to hub:', hubUrl);
+
+  const ws = new WebSocket(hubUrl);
 
   ws.onmessage = async (event) => {
     console.log('Received message:', event.data);
