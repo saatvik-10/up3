@@ -1,22 +1,17 @@
-# Use Node.js as the base
-FROM node:18-alpine
+# Use Bun runtime (handles TypeScript natively)
+FROM oven/bun:latest
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /app
 
-# Copy package.json files first (for better caching)
-COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY packages/ ./packages/
+# Copy everything (monorepo)
+COPY . .
 
-# Install all dependencies
-RUN npm install
+# Install dependencies for API
+RUN cd apps/api && bun install
 
-# Copy the actual code
-COPY apps/api ./apps/api
-
-# Expose the port your app runs on
+# Expose the port
 EXPOSE 8080
 
-# Command to start your app
-CMD ["npm", "start", "--prefix", "apps/api"]
+# Start with Bun (can run .ts files directly)
+CMD ["bun", "run", "apps/api/index.ts"]
