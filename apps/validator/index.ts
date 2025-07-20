@@ -21,7 +21,10 @@ const server = Bun.serve({
   port: process.env.PORT || 3100,
   fetch(request) {
     const url = new URL(request.url);
+    console.log('HTTP request:', url.pathname);
+
     if (url.pathname === '/dashboard' || url.pathname === '/healthz') {
+      console.log('Health check hit!');
       return new Response('Validator is healthy', { status: 200 });
     }
     return new Response('Not found', { status: 404 });
@@ -36,55 +39,67 @@ async function main() {
   );
 
   console.log('Validator started');
-  console.log('Connecting to hub');
 
-  const HUB_URL = process.env.HUB_URL ?? 'ws://localhost:8081';
-  const ws = new WebSocket(HUB_URL);
+  function connectToHub() {
+    console.log('Connecting to hub');
 
-  ws.onmessage = async (event) => {
-    console.log('Received message:', event.data);
-    const data: OutgoingMsg = JSON.parse(event.data);
+    const HUB_URL = process.env.HUB_URL ?? 'ws://localhost:8081';
+    const ws = new WebSocket(HUB_URL);
 
-    if (data.type === 'signUp') {
-      CALLBACKS[data.data.callbackId]?.(data.data);
-      delete CALLBACKS[data.data.callbackId];
-    } else if (data.type === 'validate') {
-      await validateHandler(ws, data.data, keypair);
-    }
-  };
+    ws.onmessage = async (event) => {
+      console.log('Received message:', event.data);
+      const data: OutgoingMsg = JSON.parse(event.data);
 
-  ws.onopen = async () => {
-    console.log('WebSocket connection established');
-    const callbackId = randomUUIDv7();
-    CALLBACKS[callbackId] = (data: SignUpOutgoingMsg) => {
-      validatorId = data.validatorId;
-      console.log('Validator registered with ID:', validatorId);
+      if (data.type === 'signUp') {
+        CALLBACKS[data.data.callbackId]?.(data.data);
+        delete CALLBACKS[data.data.callbackId];
+      } else if (data.type === 'validate') {
+        await validateHandler(ws, data.data, keypair);
+      }
     };
-    const signedMsg = await signMessage(
-      `Signed msg for ${callbackId}, ${keypair.publicKey}`,
-      keypair
-    );
 
-    ws.send(
-      JSON.stringify({
-        type: 'signUp',
-        data: {
-          publicKey: keypair.publicKey,
-          callbackId,
-          signedMsg,
-          ip: '127.0.0.1',
-        },
-      })
-    );
-  };
+    ws.onopen = async () => {
+      console.log('WebSocket connection established');
+      const callbackId = randomUUIDv7();
+      CALLBACKS[callbackId] = (data: SignUpOutgoingMsg) => {
+        validatorId = data.validatorId;
+        console.log('Validator registered with ID:', validatorId);
+      };
+      const signedMsg = await signMessage(
+        `Signed msg for ${callbackId}, ${keypair.publicKey}`,
+        keypair
+      );
 
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-  };
+      ws.send(
+        JSON.stringify({
+          type: 'signUp',
+          data: {
+            publicKey: keypair.publicKey,
+            callbackId,
+            signedMsg,
+            ip: '127.0.0.1',
+          },
+        })
+      );
+    };
 
-  ws.onclose = (event) => {
-    console.log('WebSocket connection closed:', event.code, event.reason);
-  };
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.onclose = (event) => {
+      console.log('WebSocket connection closed:', event.code, event.reason);
+      validatorId = null;
+
+      // Reconnect after 5 seconds
+      console.log('Reconnecting in 5 seconds...');
+      setTimeout(connectToHub, 5000);
+    };
+
+    return ws;
+  }
+
+  connectToHub();
 }
 
 async function validateHandler(
