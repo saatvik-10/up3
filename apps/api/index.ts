@@ -16,6 +16,11 @@ app.use(
 
 app.use('/api/v1', userRoutes);
 
+// Health check endpoint
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
