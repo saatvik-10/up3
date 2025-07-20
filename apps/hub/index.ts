@@ -19,9 +19,8 @@ const COST_PER_VALIDATION = 100; // in lamports
 
 // Add HTTP health check endpoint and WebSocket server for Render
 Bun.serve({
-  port: 8081,
+  port: process.env.PORT || 8081,
   fetch(req, server) {
-    // Try WebSocket upgrade first
     if (server.upgrade(req)) {
       return;
     }
